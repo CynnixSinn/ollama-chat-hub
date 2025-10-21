@@ -1,0 +1,107 @@
+{
+  "tools": [
+    {
+      "name": "web_search",
+      "description": "Search the web for current information",
+      "endpoint": "/api/tools/web_search",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The search query"
+          }
+        },
+        "required": ["query"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {"type": "string"},
+                "url": {"type": "string"},
+                "snippet": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "code_executor",
+      "description": "Execute code snippets in a sandboxed environment",
+      "endpoint": "/api/tools/code_executor",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "enum": ["python", "javascript", "bash"]
+          },
+          "code": {
+            "type": "string",
+            "description": "The code to execute"
+          }
+        },
+        "required": ["language", "code"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "output": {
+            "type": "string",
+            "description": "The output from the code execution"
+          },
+          "error": {
+            "type": "string",
+            "description": "Any error that occurred during execution"
+          }
+        }
+      }
+    },
+    {
+      "name": "file_manager",
+      "description": "Manage files on the local system",
+      "endpoint": "/api/tools/file_manager",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["read", "write", "list", "delete"]
+          },
+          "path": {
+            "type": "string",
+            "description": "The file path to operate on"
+          },
+          "content": {
+            "type": "string",
+            "description": "The content to write (for write action)"
+          }
+        },
+        "required": ["action", "path"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "The result of the file operation"
+          }
+        }
+      }
+    }
+  ],
+  "servers": [
+    {
+      "name": "Local Tools Server",
+      "url": "http://localhost:3002",
+      "capabilities": ["web_search", "code_executor", "file_manager"],
+      "enabled": true
+    }
+  ]
+}
