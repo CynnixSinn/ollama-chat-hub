@@ -1,0 +1,174 @@
+{
+  "tools": [
+    {
+      "name": "web_search",
+      "description": "Search the web for current information",
+      "endpoint": "/api/tools/web_search",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The search query"
+          }
+        },
+        "required": ["query"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {"type": "string"},
+                "url": {"type": "string"},
+                "snippet": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "code_executor",
+      "description": "Execute code snippets in a sandboxed environment",
+      "endpoint": "/api/tools/code_executor",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "enum": ["python", "javascript", "bash"]
+          },
+          "code": {
+            "type": "string",
+            "description": "The code to execute"
+          }
+        },
+        "required": ["language", "code"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "output": {
+            "type": "string",
+            "description": "The output from the code execution"
+          },
+          "error": {
+            "type": "string",
+            "description": "Any error that occurred during execution"
+          }
+        }
+      }
+    },
+    {
+      "name": "file_manager",
+      "description": "Manage files on the local system",
+      "endpoint": "/api/tools/file_manager",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["read", "write", "list", "delete"]
+          },
+          "path": {
+            "type": "string",
+            "description": "The file path to operate on"
+          },
+          "content": {
+            "type": "string",
+            "description": "The content to write (for write action)"
+          }
+        },
+        "required": ["action", "path"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "The result of the file operation"
+          }
+        }
+      }
+    },
+    {
+      "name": "ollama_model_call",
+      "description": "Call another Ollama model to assist with the current task",
+      "endpoint": "/api/tools/ollama_call",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "The Ollama model to use"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The prompt to send to the model"
+          },
+          "options": {
+            "type": "object",
+            "description": "Additional options for the model"
+          }
+        },
+        "required": ["model", "prompt"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "string",
+            "description": "The response from the Ollama model"
+          }
+        }
+      }
+    },
+    {
+      "name": "calculator",
+      "description": "Perform mathematical calculations",
+      "endpoint": "/api/tools/calculator",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": ["add", "subtract", "multiply", "divide", "evaluate"],
+            "description": "The mathematical operation to perform"
+          },
+          "expression": {
+            "type": "string",
+            "description": "The mathematical expression to evaluate"
+          }
+        },
+        "required": ["operation", "expression"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "number",
+            "description": "The result of the calculation"
+          }
+        }
+      }
+    }
+  ],
+  "servers": [
+    {
+      "name": "Local Tools Server",
+      "url": "http://localhost:3002",
+      "capabilities": ["web_search", "code_executor", "file_manager"],
+      "enabled": true
+    },
+    {
+      "name": "Ollama Model Server",
+      "url": "http://localhost:11434",
+      "capabilities": ["ollama_model_call"],
+      "enabled": true
+    }
+  ]
+}

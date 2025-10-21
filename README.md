@@ -64,6 +64,7 @@ The application will be available at http://localhost:3000
 - Ollama API endpoint can be configured in the settings panel or via the `OLLAMA_HOST` environment variable
 - MCP tools and servers can be configured via the `mcp.json` file or through the settings UI
 - Voice recognition settings can be toggled in the settings panel
+- For detailed configuration options, see [CONFIGURATION.md](CONFIGURATION.md)
 
 ## Keyboard Shortcuts
 
