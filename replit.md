@@ -14,6 +14,17 @@ Ollama Chat Hub is a powerful interface for chatting with local Ollama models. T
 - Built Next.js static export to frontend/out directory
 - Backend serves static frontend files in production mode (NODE_ENV=production)
 
+### Tool Calling Implementation
+- Implemented real tool execution handlers (web_search, code_executor, file_manager)
+- Integrated tools with Ollama's chat API (OpenAI-compatible format)
+- Added DuckDuckGo web search capability
+- Added code execution for Python, JavaScript, and Bash with safety limits
+- Added file management with sandboxed directory restrictions
+- Tools are sent to Ollama during chat and can be executed
+- See TOOL_CALLING.md for detailed documentation
+
+**Security Note**: Code executor has basic safety measures (5s timeout, 50KB output limit) but is NOT fully sandboxed. Suitable for trusted users only.
+
 ## Project Architecture
 
 ### Frontend (Next.js 14)

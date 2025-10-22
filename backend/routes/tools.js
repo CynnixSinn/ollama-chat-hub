@@ -3,6 +3,9 @@ const router = express.Router();
 const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
+const { webSearch } = require('../handlers/web_search');
+const { executeCode } = require('../handlers/code_executor');
+const { manageFile } = require('../handlers/file_manager');
 
 // Get tools configuration
 router.get('/', async (req, res) => {
@@ -49,14 +52,55 @@ router.post('/execute', async (req, res) => {
       return res.status(404).json({ error: `Tool ${toolName} not found` });
     }
     
-    // In a real implementation, you would execute the tool with the specified parameters
-    // For now, we'll simulate a response
-    const result = {
-      tool: toolName,
-      parameters,
-      result: `Simulated result from tool: ${toolName}`,
-      timestamp: new Date().toISOString()
-    };
+    let result;
+    
+    // Execute the actual tool based on its name
+    switch (toolName) {
+      case 'web_search':
+        const searchResult = await webSearch(parameters.query);
+        result = {
+          tool: toolName,
+          parameters,
+          success: searchResult.success,
+          result: searchResult.results,
+          error: searchResult.error,
+          timestamp: new Date().toISOString()
+        };
+        break;
+      
+      case 'code_executor':
+        const execResult = await executeCode(parameters.language, parameters.code);
+        result = {
+          tool: toolName,
+          parameters,
+          success: execResult.success,
+          output: execResult.output,
+          error: execResult.error,
+          timestamp: new Date().toISOString()
+        };
+        break;
+      
+      case 'file_manager':
+        const fileResult = await manageFile(parameters.action, parameters.path, parameters.content);
+        result = {
+          tool: toolName,
+          parameters,
+          success: fileResult.success,
+          result: fileResult.result,
+          error: fileResult.error,
+          timestamp: new Date().toISOString()
+        };
+        break;
+      
+      default:
+        result = {
+          tool: toolName,
+          parameters,
+          success: false,
+          error: `Unknown tool: ${toolName}`,
+          timestamp: new Date().toISOString()
+        };
+    }
     
     res.json(result);
   } catch (error) {

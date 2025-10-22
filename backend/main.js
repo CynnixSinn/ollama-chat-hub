@@ -11,6 +11,9 @@ const schedule = require('node-schedule');
 const NodeCache = require('node-cache');
 const shelljs = require('shelljs');
 const ArtifactsManager = require('./utils/artifacts_manager');
+const { webSearch } = require('./handlers/web_search');
+const { executeCode } = require('./handlers/code_executor');
+const { manageFile } = require('./handlers/file_manager');
 
 // Initialize cache for storing model information and other data
 const cache = new NodeCache({ stdTTL: 600 }); // 10 minutes TTL
@@ -165,6 +168,38 @@ async function loadMCPConfig() {
   }
 }
 
+// Execute tool internally
+async function executeToolInternal(toolName, parameters) {
+  try {
+    let result;
+    
+    switch (toolName) {
+      case 'web_search':
+        const searchResult = await webSearch(parameters.query);
+        result = searchResult.success ? searchResult.results : { error: searchResult.error };
+        break;
+      
+      case 'code_executor':
+        const execResult = await executeCode(parameters.language, parameters.code);
+        result = execResult.success ? { output: execResult.output } : { error: execResult.error };
+        break;
+      
+      case 'file_manager':
+        const fileResult = await manageFile(parameters.action, parameters.path, parameters.content);
+        result = fileResult.success ? { result: fileResult.result } : { error: fileResult.error };
+        break;
+      
+      default:
+        result = { error: `Unknown tool: ${toolName}` };
+    }
+    
+    return result;
+  } catch (error) {
+    console.error(`Error executing tool ${toolName}:`, error.message);
+    return { error: error.message };
+  }
+}
+
 // WebSocket connection handling
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
@@ -186,10 +221,22 @@ io.on('connection', (socket) => {
     const { model, messages } = data;
     
     try {
+      // Load tools from MCP configuration
+      const mcpConfig = await loadMCPConfig();
+      const tools = mcpConfig.tools.map(tool => ({
+        type: 'function',
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.input_schema
+        }
+      }));
+
       const response = await axios.post(`${OLLAMA_HOST}/api/chat`, {
         model,
         messages,
-        stream: true
+        stream: true,
+        tools: tools.length > 0 ? tools : undefined
       }, {
         responseType: 'stream'
       });
@@ -201,6 +248,33 @@ io.on('connection', (socket) => {
           if (line.trim()) {
             try {
               const parsed = JSON.parse(line);
+              
+              // Check for tool calls
+              if (parsed.message && parsed.message.tool_calls) {
+                parsed.message.tool_calls.forEach(async (toolCall) => {
+                  try {
+                    const toolName = toolCall.function.name;
+                    const toolArgs = JSON.parse(toolCall.function.arguments || '{}');
+                    
+                    // Execute the tool
+                    const toolResult = await executeToolInternal(toolName, toolArgs);
+                    
+                    // Send tool result back to client
+                    socket.emit('toolCall', {
+                      id: toolCall.id,
+                      name: toolName,
+                      arguments: toolArgs,
+                      result: toolResult
+                    });
+                  } catch (err) {
+                    console.error('Error executing tool:', err);
+                    socket.emit('toolError', {
+                      toolCall: toolCall,
+                      error: err.message
+                    });
+                  }
+                });
+              }
               
               // Check if the response contains artifacts (code, images, etc.)
               if (parsed.message && parsed.message.content) {
@@ -245,14 +319,18 @@ io.on('connection', (socket) => {
   // Handle tool calling
   socket.on('callTool', async (toolData) => {
     try {
-      // In a real implementation, this would call the appropriate tool
-      // For now, we'll simulate a response
-      const result = {
-        tool: toolData.name,
-        result: `Simulated result for tool: ${toolData.name}`,
-        ...toolData
-      };
-      socket.emit('toolResult', result);
+      const toolName = toolData.name;
+      const toolParams = toolData.parameters || toolData.arguments || {};
+      
+      // Execute the actual tool
+      const result = await executeToolInternal(toolName, toolParams);
+      
+      socket.emit('toolResult', {
+        tool: toolName,
+        parameters: toolParams,
+        result: result,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       socket.emit('toolError', { error: error.message });
     }
