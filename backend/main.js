@@ -345,7 +345,7 @@ function getMimeTypeFromLang(language) {
 }
 
 // Start server
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Ollama Chat Hub server running on port ${PORT}`);
   console.log(`Ollama API endpoint: ${OLLAMA_HOST}`);
 });
