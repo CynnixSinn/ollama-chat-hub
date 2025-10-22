@@ -39,7 +39,7 @@ shelljs.mkdir('-p', artifactsDir);
 
 // Configuration
 const PORT = process.env.PORT || 3001;
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
+const OLLAMA_HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').trim();
 
 // Routes
 const ollamaRoutes = require('./routes/ollama');
