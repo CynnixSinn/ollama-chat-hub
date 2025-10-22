@@ -1,4 +1,5 @@
 # Ollama Chat Hub
+![Lucid_Origin_create_a_logo_for_an_app_called_ollama_chat_hub_i_0](https://github.com/user-attachments/assets/052f5b00-437e-4c8f-a394-513edde92804)
 
 A powerful interface for chatting with local Ollama models and managing their tools, features, and artifacts.
 
