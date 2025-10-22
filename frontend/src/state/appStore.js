@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { io } from 'socket.io-client';
 
 // Create a socket connection to the backend
-const socket = io('http://localhost:3001', {
+const socket = io({
   transports: ['websocket', 'polling']
 });
 

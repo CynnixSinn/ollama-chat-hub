@@ -19,7 +19,7 @@ export const SettingsPanel = () => {
 
   const loadConfig = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/mcp');
+      const response = await axios.get('/api/mcp');
       setMcpConfig(response.data);
       
       // Load Ollama host from localStorage or use default
@@ -42,7 +42,7 @@ export const SettingsPanel = () => {
   const saveSettings = async () => {
     try {
       // Save MCP config
-      await axios.post('http://localhost:3001/api/mcp', mcpConfig);
+      await axios.post('/api/mcp', mcpConfig);
       
       // Save other settings locally
       localStorage.setItem('ollamaHost', ollamaHost);
